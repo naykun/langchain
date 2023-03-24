@@ -29,7 +29,7 @@ from langchain.schema import (
     HumanMessage,
 )
 from langchain.tools.base import BaseTool
-
+import re
 
 class AgentOutputParser(BaseOutputParser):
     def get_format_instructions(self) -> str:
@@ -37,6 +37,12 @@ class AgentOutputParser(BaseOutputParser):
 
     def parse(self, text: str) -> Any:
         cleaned_output = text.strip()
+        # match the output of the LLM, get the first json code block
+        print("------cleaned output: ", cleaned_output)
+        cleaned_output = re.findall(r"(```json.+?```)", cleaned_output, re.DOTALL)[0]
+        # truncate the output to the first json code block
+        truncated_output = "AI:\n" + cleaned_output
+        
         if "```json" in cleaned_output:
             _, cleaned_output = cleaned_output.split("```json")
         if "```" in cleaned_output:
@@ -49,7 +55,8 @@ class AgentOutputParser(BaseOutputParser):
             cleaned_output = cleaned_output[: -len("```")]
         cleaned_output = cleaned_output.strip()
         response = json.loads(cleaned_output)
-        return {"action": response["action"], "action_input": response["action_input"]}
+        print("------parsed response: ", response)
+        return {"action": response["action"], "action_input": response["action_input"]}, truncated_output
 
 
 class ConversationalChatAgent(Agent):
@@ -103,8 +110,8 @@ class ConversationalChatAgent(Agent):
 
     def _extract_tool_and_input(self, llm_output: str) -> Optional[Tuple[str, str]]:
         try:
-            response = self.output_parser.parse(llm_output)
-            return response["action"], response["action_input"]
+            response, cleaned_output = self.output_parser.parse(llm_output)
+            return response["action"], response["action_input"], cleaned_output
         except Exception:
             raise ValueError(f"Could not parse LLM output: {llm_output}")
 
@@ -143,6 +150,7 @@ class ConversationalChatAgent(Agent):
             input_variables=input_variables,
             output_parser=_output_parser,
         )
+        # print(prompt)
         llm_chain = LLMChain(
             llm=llm,
             prompt=prompt,

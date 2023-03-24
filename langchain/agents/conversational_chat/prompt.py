@@ -54,4 +54,4 @@ TEMPLATE_TOOL_RESPONSE = """TOOL RESPONSE:
 USER'S INPUT
 --------------------
 
-Okay, so what is the response to my original question? If using information from tools, you must say it explicitly - I have forgotten all TOOL RESPONSES! Remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else."""
+Tell me the response with human friendly proper message according to those info(NODE: If filename is in most recent TOOL RESPONSE, include it and DO NOT CHANGE THE FILENAME, otherwise DONT MENTION any filename), and do not mention any tools. Remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else. pay attention to special characters like " and ' in message, they should be escaped. """

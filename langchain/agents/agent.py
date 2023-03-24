@@ -72,7 +72,7 @@ class Agent(BaseModel):
             full_output += output
             parsed_output = self._extract_tool_and_input(full_output)
         return AgentAction(
-            tool=parsed_output[0], tool_input=parsed_output[1], log=full_output
+            tool=parsed_output[0], tool_input=parsed_output[1], log=parsed_output[2]
         )
 
     async def _aget_next_action(self, full_inputs: Dict[str, str]) -> AgentAction:
@@ -102,6 +102,7 @@ class Agent(BaseModel):
             Action specifying what tool to use.
         """
         full_inputs = self.get_full_inputs(intermediate_steps, **kwargs)
+        print(full_inputs)
         action = self._get_next_action(full_inputs)
         if action.tool == self.finish_tool_name:
             return AgentFinish({"output": action.tool_input}, action.log)
@@ -238,14 +239,14 @@ class Agent(BaseModel):
             if parsed_output is None:
                 # If we cannot extract, we just return the full output
                 return AgentFinish({"output": full_output}, full_output)
-            tool, tool_input = parsed_output
+            tool, tool_input, cleaned_output = parsed_output
             if tool == self.finish_tool_name:
                 # If we can extract, we send the correct stuff
-                return AgentFinish({"output": tool_input}, full_output)
+                return AgentFinish({"output": tool_input}, cleaned_output)
             else:
                 # If we can extract, but the tool is not the final tool,
                 # we just return the full output
-                return AgentFinish({"output": full_output}, full_output)
+                return AgentFinish({"output": full_output}, cleaned_output)
         else:
             raise ValueError(
                 "early_stopping_method should be one of `force` or `generate`, "
