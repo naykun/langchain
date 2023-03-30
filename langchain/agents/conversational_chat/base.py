@@ -38,8 +38,11 @@ class AgentOutputParser(BaseOutputParser):
     def parse(self, text: str) -> Any:
         cleaned_output = text.strip()
         # match the output of the LLM, get the first json code block
-        print("------cleaned output: ", cleaned_output)
-        cleaned_output = re.findall(r"(```json.+?```)", cleaned_output, re.DOTALL)[0]
+        # print("------cleaned output: ", cleaned_output)
+        try:
+            cleaned_output = re.findall(r"(```json.+?```)", cleaned_output, re.DOTALL)[0]
+        except IndexError:
+            cleaned_output = re.findall(r"(```.+?```)", cleaned_output, re.DOTALL)[0]
         # truncate the output to the first json code block
         truncated_output = "AI:\n" + cleaned_output
         
@@ -55,7 +58,7 @@ class AgentOutputParser(BaseOutputParser):
             cleaned_output = cleaned_output[: -len("```")]
         cleaned_output = cleaned_output.strip()
         response = json.loads(cleaned_output)
-        print("------parsed response: ", response)
+        # print("------parsed response: ", response)
         return {"action": response["action"], "action_input": response["action_input"]}, truncated_output
 
 
