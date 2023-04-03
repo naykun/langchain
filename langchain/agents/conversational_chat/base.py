@@ -42,7 +42,10 @@ class AgentOutputParser(BaseOutputParser):
         try:
             cleaned_output = re.findall(r"(```json.+?```)", cleaned_output, re.DOTALL)[0]
         except IndexError:
-            cleaned_output = re.findall(r"(```.+?```)", cleaned_output, re.DOTALL)[0]
+            try:
+                cleaned_output = re.findall(r"(```.+?```)", cleaned_output, re.DOTALL)[0]
+            except IndexError:
+                cleaned_output = re.findall(r"(\{.+?\})", cleaned_output, re.DOTALL)[0]
         # truncate the output to the first json code block
         truncated_output = "AI:\n" + cleaned_output
         
